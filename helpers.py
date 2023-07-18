@@ -1,41 +1,6 @@
-import base64
-from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 from datetime import datetime
 import hashlib
 import pytz
-import os
-
-from settings import ENC_KEY
-
-# Encryption method
-cipher = ChaCha20Poly1305(base64.b64decode(ENC_KEY))
-NULL_BYTE = b""
-NONCE_SIZE = 12     # Nonce size in bytes
-NONCE_LENGTH = 16   # For nonce size 12; nonce string length will be 16
-
-
-def cryptography_service(message: str, serv_type: str = "encrypt"):
-    """
-    Encrypt or decrypt a string
-    :param message: string to encrypt or decrypt
-    :param serv_type: "encrypt" to perform encryption & "decrypt" for decryption
-    :return: encrypted/decrypted string
-    """
-    if serv_type == "encrypt":
-        nonce = os.urandom(NONCE_SIZE)
-        nonce_str = str(base64.b64encode(nonce), encoding="utf8")
-        encrypted_str = cipher.encrypt(nonce, message.encode(), NULL_BYTE)
-        return nonce_str+str(base64.b64encode(encrypted_str), encoding="utf8")
-
-    elif serv_type == "decrypt":
-        nonce, data = base64.b64decode(message[:NONCE_LENGTH]), base64.b64decode(message[NONCE_LENGTH:])
-        return cipher.decrypt(nonce, data, NULL_BYTE).decode()
-
-    else:
-        AssertionError(
-            f"Invalid value for argument 'serv_type': '{serv_type}';"
-            "Please check the docstring for valid options"
-        )
 
 
 # Takes an object and return its hash ( SHA512 )
@@ -56,9 +21,21 @@ def to_IST(timestamp: datetime):
     :param timestamp: UTC timestamp
     :return: IST timestamp
     """
-    local_tz = pytz.timezone('Asia/Kolkata')
+    local_tz = pytz.timezone("Asia/Kolkata")
     local_dt = timestamp.replace(tzinfo=pytz.utc).astimezone(local_tz)
     return local_tz.normalize(local_dt)
+
+
+# Change IST datetime to UTC datetime
+def to_UTC(timestamp: datetime):
+    """
+    Convert IST datetime to UTC datetime
+    :param timestamp: IST timestamp
+    :return: UTC timestamp
+    """
+    local_tz = pytz.timezone("Asia/Kolkata")
+    utc_dt = local_tz.localize(timestamp, is_dst=None).astimezone(pytz.utc)
+    return pytz.utc.normalize(utc_dt)
 
 
 # Get timestamp from epoch
@@ -69,3 +46,20 @@ def UTC_from_epoch(epoch: int):
     :return: UTC timestamp
     """
     return datetime.utcfromtimestamp(epoch)
+
+
+def time_difference(
+    timestamp_a: datetime, timestamp_b: datetime, formatted: bool = False
+):
+    """
+    Calculate the time difference between 2 timestamps
+    :param timestamp_a: timestamp with higher value
+    :param timestamp_b: timestamp with lower value
+    :param formatted: whether the output required in formatted string like HH:MM
+    """
+    time_diff = timestamp_a - timestamp_b
+    if formatted:
+        time_diff_hours = time_diff.seconds // 3600
+        time_diff_minutes = (time_diff.seconds - (time_diff_hours * 3600)) // 60
+        time_diff = f"{str(time_diff_hours).rjust(2, '0')}:{str(time_diff_minutes).rjust(2, '0')}"
+    return time_diff

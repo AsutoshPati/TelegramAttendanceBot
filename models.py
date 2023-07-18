@@ -1,5 +1,15 @@
 from datetime import datetime
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, JSON, String, DateTime, func, or_
+from sqlalchemy import (
+    Boolean,
+    Column,
+    ForeignKey,
+    Integer,
+    JSON,
+    String,
+    DateTime,
+    func,
+    or_,
+)
 from sqlalchemy.orm import DeclarativeBase
 
 from db_backend import db_session, engine, debug_query
@@ -24,12 +34,26 @@ class User(Base):
     is_pwd_expired = Column(Boolean, default=False)
 
     @classmethod
+    def get_by_user_id(cls, user_id: str, only_active: bool = True):
+        """
+        Get user record by their ID
+        :param user_id: user ID of user
+        :param only_active: whether to fetch only active user or not
+        """
+        query = db_session.query(cls).filter(cls.id == user_id)
+        if only_active:
+            query = query.filter(cls.is_active.isnot(False))
+        return query.first()
+
+    @classmethod
     def get_by_emp_id(cls, employee_id: str):
         """
         Get user record by their employee ID
         :param employee_id: employee ID of user
         """
-        query = db_session.query(cls).filter(cls.employee_id == employee_id, cls.is_active.isnot(False))
+        query = db_session.query(cls).filter(
+            cls.employee_id == employee_id, cls.is_active.isnot(False)
+        )
         return query.first()
 
     @classmethod
@@ -38,7 +62,9 @@ class User(Base):
         Get user record by their chat ID
         :param chat_id: chat ID of user
         """
-        query = db_session.query(cls).filter(cls.last_chat_id == chat_id, cls.is_active.isnot(False))
+        query = db_session.query(cls).filter(
+            cls.last_chat_id == chat_id, cls.is_active.isnot(False)
+        )
         return query.first()
 
     @classmethod
@@ -52,7 +78,7 @@ class User(Base):
             cls.employee_id == employee_id,
             cls.temp_pwd == get_hashed(temp_pwd),
             cls.is_active.isnot(False),
-            cls.is_pwd_expired.isnot(True)
+            cls.is_pwd_expired.isnot(True),
         )
         print(debug_query(query))
         return query.first()
@@ -62,7 +88,7 @@ class Attendance(Base):
     __tablename__ = "attendance"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user_account.id'))
+    user_id = Column(Integer, ForeignKey("user_account.id"))
     selfie = Column(JSON, unique=True)
     selfie_time = Column(DateTime(timezone=True))
     location = Column(JSON)
@@ -85,13 +111,37 @@ class Attendance(Base):
         # ).desc().first()
 
         # For sqlite
-        return db_session.query(cls).filter(
-            cls.user_id == user_id,
-            or_(
-                func.DATE(cls.selfie_time) == str(timestamp.date()),
-                func.DATE(cls.selfie_time) == str(timestamp.date())
+        return (
+            db_session.query(cls)
+            .filter(
+                cls.user_id == user_id,
+                or_(
+                    func.DATE(cls.selfie_time) == str(timestamp.date()),
+                    func.DATE(cls.selfie_time) == str(timestamp.date()),
+                ),
             )
-        ).order_by(cls.id.desc()).first()
+            .order_by(cls.id.desc())
+            .first()
+        )
+
+    @classmethod
+    def get_attendance_records(
+        cls, start_time: datetime, end_time: datetime, user_id: str = None
+    ):
+        """
+        :param start_time:
+        :param end_time:
+        :param user_id:
+        """
+        attendance_records = db_session.query(cls).filter(
+            func.DATETIME(cls.selfie_time) >= str(start_time),
+            func.DATETIME(cls.selfie_time) < str(end_time),
+            func.DATETIME(cls.location_time) >= str(start_time),
+            func.DATETIME(cls.location_time) < str(end_time),
+        )
+        if user_id:
+            attendance_records = attendance_records.filter(cls.user_id == user_id)
+        return attendance_records.order_by(cls.user_id, cls.id).all()
 
 
 # Create/Update models
