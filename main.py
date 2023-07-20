@@ -62,13 +62,13 @@ def welcome_user(message):
 def help_msg(message):
     bot.reply_to(
         message,
-        "/login - to login a user with employee ID and OTP followed by command\n"
-        "/logout - to logout a user\n"
-        "/create - HR can create a new user with their employee ID, name, role, OTP followed by command\n"
-        "/download - user can download their monthly attendance by providing the month & year followed by command\n"
-        "/rstpwd - HR can reset user password by providing employee ID & OTP followed by command\n"
-        "/deactive - HR can deactivate an user by providing employee ID followed by command\n"
-        "/reactive - HR can reactive an user by providing employee ID followed by command",
+        "/login \\- to login a user with employee ID and OTP followed by command\n"
+        "/logout \\- to logout a user\n"
+        "/create \\- HR can create a new user with their employee ID, name, role, OTP followed by command\n"
+        "/download \\- user can download their monthly attendance by providing the month & year followed by command\n"
+        "/rstpwd \\- HR can reset user password by providing employee ID & OTP followed by command\n"
+        "/deactive \\- HR can deactivate an user by providing employee ID followed by command\n"
+        "/reactive \\- HR can reactive an user by providing employee ID followed by command",
         parse_mode="MarkdownV2",
     )
 
@@ -130,6 +130,12 @@ def create_user(message):
                 _, emp_id, full_name, role, pwd = list(
                     map(lambda x: x.strip(), message.text.split("\n"))
                 )
+                if role.title() == "Employee":
+                    role = "Employee"
+                elif role.upper() == "HR":
+                    role = "HR"
+                else:
+                    bot.reply_to(message, "Please provide Employee/HR as role")
                 pwd = get_hashed(pwd)
                 new_user = User(
                     employee_id=emp_id, fullname=full_name, role=role, temp_pwd=pwd
@@ -238,7 +244,7 @@ def reactivate_user(message):
         if known_user.role == "HR":
             try:
                 _, emp_id = list(map(lambda x: x.strip(), message.text.split("\n")))
-                user = User.get_by_emp_id(emp_id)
+                user = User.get_by_emp_id(emp_id, only_active=False)
                 if user:
                     user.is_active = True
                     db_session.add(user)

@@ -56,6 +56,23 @@ To set up the TelegramAttendanceBot for the first time, follow these steps:
 
 Please note that the bot setup will create a super HR user who will have complete control over the organization's attendance system. Ensure that you keep the Bot Token and super HR credentials secure.
 
+## Screenshots
+
+![](./screenshots/getting-started.jpeg) | You can start with `/start` or `/hello` command to begin interaction with the bot |
+:-------------------------:|:-------------------------: |
+You can take the help from bot at any time just by using `/help`; This will provide you the commands available and their uses | ![](./screenshots/getting-help.png) |
+![](./screenshots/login.png) | An user(employee/HR) can login using `/login` command with employee ID and One Time Password provided by HR |
+Similar to login process an user can also perform logout process just by sending the command `/logout` | ![](./screenshots/logout.png) |
+![](./screenshots/create-employee.png) | A HR can add new users(employee/HR) by sending `/create` command followed by employee ID, full name of user, role(employee/HR) and a new One Time Password |
+A HR can also deactive any employee by providing command `/deactive` with the employee ID | ![](./screenshots/deactive-employee.png) |
+![](./screenshots/reactive-employee.png) | Similar to deactivation process HR can also reactivate any user by sending the command `/reactive` followed by the employee ID |
+If an user has logged out or wants to login again with a new telegram account then a new One Time Password will be required to login; by `/rstpwd` command a new One Time Password can be set for the user by HR, providing the employee ID and a password | ![](./screenshots/reset-otp.png) |
+![](./screenshots/attendance.png) | Share a selfie (Use timestamp camera for accurate time & location) followed by location with in 2 minutes (delay can be set in settings.py) to add your attendance |
+While sharing location, provide location access to Telegram app and tap on "**Send Selected Location**" | ![](./screenshots/send-location.jpeg) |
+![](./screenshots/downloading-report.jpeg) | Attendance Report can be downloaded by both HR and Employee. HR can can download all user attendance where as Employees can download only their own data. <br> use command `/download` to download the attendance report of the same day. <br> `/download` followed by DD MM YYYY for report of a specific date, MM YYYY for report of a specific month, YYYY for report of a specific year. <br> `/download` followed by date string and employee ID provide attendance report for a the specific user. |
+![](./screenshots/downloading-report-2.jpeg) | ![](./screenshots/attendance-report.jpeg) |
+
+
 ## Future Developments
 
 - **Face Recognition Integration**: In the future, we plan to implement face recognition technology to enhance attendance verification and ensure accurate tracking of employees' clock-in and clock-out.
